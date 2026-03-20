@@ -7,6 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
@@ -20,6 +21,7 @@ import { AuthService } from '../../services/auth.service';
     MatButtonModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
+    MatIconModule,
   ],
   template: `
     <div style="min-height:100vh; display:flex; align-items:center; justify-content:center; background-color: #fdfcf9; position: relative; overflow: hidden;">
@@ -55,7 +57,10 @@ import { AuthService } from '../../services/auth.service';
 
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Password</mat-label>
-              <input matInput type="password" formControlName="password" placeholder="••••••••" id="admin-password" />
+              <input matInput [type]="hidePassword() ? 'password' : 'text'" formControlName="password" placeholder="••••••••" id="admin-password" />
+              <button mat-icon-button matSuffix type="button" (click)="hidePassword.set(!hidePassword())" tabindex="-1">
+                <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
               @if (loginForm.get('password')?.errors?.['required']) {
                 <mat-error>Password is required</mat-error>
               }
@@ -90,6 +95,7 @@ export class LoginComponent {
   private snack = inject(MatSnackBar);
 
   loading = signal(false);
+  hidePassword = signal(true);
 
   // nonNullable removes the need for ! assertions on form values
   loginForm = this.fb.nonNullable.group({

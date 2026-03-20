@@ -10,6 +10,7 @@ const Login = () => {
   const [isRegister, setIsRegister] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [form, setForm] = useState({
     name: '', email: '', password: '', department: 'CSE', year: 1, skills: '',
@@ -87,7 +88,16 @@ const Login = () => {
 
             <div>
               <label className="label">Password</label>
-              <input type="password" name="password" value={form.password} onChange={handleChange} required className="input" placeholder="••••••••" />
+              <div className="relative">
+                <input type={showPassword ? 'text' : 'password'} name="password" value={form.password} onChange={handleChange} required className="input pr-16" placeholder="••••••••" />
+                <button 
+                  type="button" 
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-royal-500 hover:text-royal-800 transition-colors"
+                >
+                  {showPassword ? 'HIDE' : 'SHOW'}
+                </button>
+              </div>
             </div>
 
             {isRegister && (
