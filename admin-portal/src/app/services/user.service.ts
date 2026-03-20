@@ -16,7 +16,7 @@ export interface UserRecord {
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
-  private readonly API = 'http://localhost:5000/api';
+  private readonly API = '/api';
   private http = inject(HttpClient);
 
   getAllUsers(): Observable<UserRecord[]> {

@@ -16,7 +16,7 @@ export interface AdminUser {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly API = 'http://localhost:5000/api';
+  private readonly API = '/api';
   private http = inject(HttpClient);
 
   currentUser = signal<AdminUser | null>(null);

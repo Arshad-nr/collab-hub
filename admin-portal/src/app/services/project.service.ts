@@ -21,7 +21,7 @@ export interface Project {
 
 @Injectable({ providedIn: 'root' })
 export class ProjectService {
-  private readonly API = 'http://localhost:5000/api';
+  private readonly API = '/api';
   private http = inject(HttpClient);
 
   getAllProjects(): Observable<Project[]> {

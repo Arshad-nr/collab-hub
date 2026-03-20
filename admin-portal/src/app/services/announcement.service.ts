@@ -10,7 +10,7 @@ export interface Announcement {
 
 @Injectable({ providedIn: 'root' })
 export class AnnouncementService {
-  private readonly API = 'http://localhost:5000/api';
+  private readonly API = '/api';
   private http = inject(HttpClient);
 
   post(data: Announcement): Observable<{ message: string; announcement: Announcement }> {
