@@ -20,6 +20,7 @@ const Profile = () => {
   const [editForm, setEditForm] = useState({});
 
   const isOwn = id === user?._id;
+  const [avatarLoading, setAvatarLoading] = useState(false);
 
   const fetchProfile = async () => {
     try {
@@ -41,6 +42,25 @@ const Profile = () => {
   };
 
   useEffect(() => { fetchProfile(); }, [id]);
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('avatar', file);
+      const { data } = await api.post('/upload/avatar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setProfileData(prev => ({ ...prev, avatar: data.avatar }));
+      updateUser({ avatar: data.avatar });
+    } catch (err) {
+      alert(err.response?.data?.message || 'Upload failed.');
+    } finally {
+      setAvatarLoading(false);
+    }
+  };
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -90,13 +110,27 @@ const Profile = () => {
       <div className="card p-6">
         <div className="flex items-start gap-6 flex-wrap">
           {/* Avatar */}
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 relative">
             {profileData.avatar ? (
               <img src={profileData.avatar} alt={profileData.name} className="w-24 h-24 rounded-2xl object-cover ring-4 ring-gold-500/40" />
             ) : (
               <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-royal-600 to-royal-800 flex items-center justify-center text-gold-500 text-4xl font-bold">
                 {profileData.name?.[0]?.toUpperCase()}
               </div>
+            )}
+            {/* Upload overlay — only for own profile */}
+            {isOwn && (
+              <label
+                className="absolute inset-0 flex items-center justify-center rounded-2xl cursor-pointer bg-black/40 opacity-0 hover:opacity-100 transition-opacity"
+                title="Change photo"
+              >
+                {avatarLoading ? (
+                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <span className="text-white text-xs font-semibold">📷 Change</span>
+                )}
+                <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+              </label>
             )}
           </div>
 

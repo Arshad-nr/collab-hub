@@ -36,10 +36,13 @@ const Browse = () => {
   };
 
   // Filter + sort
-  // Only show requests with no deptPreferred when 'All' is selected
+  // Match dept if: deptPreferred === dept OR poster's department === dept
   const filtered = requests
     .filter(r => {
-      const matchesDept = dept === 'All' || r.deptPreferred === dept;
+      const matchesDept =
+        dept === 'All' ||
+        r.deptPreferred === dept ||
+        r.postedBy?.department === dept;
       const matchesSearch = r.title.toLowerCase().includes(search.toLowerCase());
       return matchesDept && matchesSearch;
     })
