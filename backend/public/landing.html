@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inter-Department Collaboration Hub</title>
+  <meta name="description" content="Find teammates, collaborate on projects, and showcase your work across departments." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lora', serif;
+      background-color: #fdfcf9;
+      color: #2b1d31;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Background ornament ── */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -20vw; left: -20vw;
+      width: 60vw; height: 60vw;
+      background: radial-gradient(circle, rgba(212,175,55,0.06) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: -25vw; right: -25vw;
+      width: 70vw; height: 70vw;
+      background: radial-gradient(circle, rgba(74,35,90,0.04) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      padding: 72px 24px 48px;
+      position: relative;
+      z-index: 1;
+    }
+    .crown { font-size: 56px; margin-bottom: 20px; }
+    .site-title {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(1.6rem, 4vw, 2.8rem);
+      font-weight: 700;
+      letter-spacing: 4px;
+      color: #2b1d31;
+    }
+    .site-subtitle {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 1.1rem;
+      color: #8c7e8e;
+      margin-top: 12px;
+      line-height: 1.6;
+    }
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      justify-content: center;
+      margin-top: 28px;
+    }
+    .divider-line { width: 80px; height: 1px; background: #eaddcf; }
+    .divider-icon { font-size: 18px; color: #d4af37; }
+
+    /* ── Cards Grid ── */
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 24px 64px;
+      position: relative;
+      z-index: 1;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 32px;
+      max-width: 800px;
+      width: 100%;
+      align-items: stretch;
+    }
+
+    /* ── Portal Card ── */
+    .card {
+      background: #ffffff;
+      border: 1px solid #eaddcf;
+      text-decoration: none;
+      color: inherit;
+      padding: 48px 40px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.35s ease, box-shadow 0.35s ease;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .card.student::before { background: #d4af37; }
+    .card.admin::before   { background: #4a235a; }
+
+    /* Inner frame ornament */
+    .card::after {
+      content: '';
+      position: absolute;
+      top: 8px; right: 8px; bottom: 8px; left: 8px;
+      border: 1px solid rgba(212, 175, 55, 0.12);
+      pointer-events: none;
+      transition: border-color 0.35s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 24px 60px rgba(43, 29, 49, 0.08);
+    }
+    .card:hover::after {
+      border-color: rgba(212, 175, 55, 0.3);
+    }
+
+    .card-icon {
+      font-size: 48px;
+      margin-bottom: 24px;
+      display: block;
+    }
+    .card-title {
+      font-family: 'Cinzel', serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+    }
+    .card.student .card-title { color: #c69940; }
+    .card.admin   .card-title { color: #4a235a; }
+
+    .card-desc {
+      font-family: 'Lora', serif;
+      font-size: 0.95rem;
+      color: #6a5d6e;
+      line-height: 1.7;
+      margin-bottom: 32px;
+    }
+    .card-features {
+      list-style: none;
+      margin-bottom: 36px;
+      flex: 1;  /* pushes button to bottom */
+    }
+    .card-features li {
+      font-size: 0.85rem;
+      color: #8c7e8e;
+      padding: 5px 0;
+      font-family: 'Lora', serif;
+      font-style: italic;
+    }
+    .card-features li::before {
+      content: '⚜ ';
+      color: #d4af37;
+      font-style: normal;
+      font-size: 0.8rem;
+    }
+
+    .card-btn {
+      display: inline-block;
+      font-family: 'Cinzel', serif;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 12px 32px;
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .card-btn:hover { opacity: 0.88; transform: scale(0.98); }
+
+    .card.student .card-btn { background: #d4af37; color: #2b1d31; }
+    .card.admin   .card-btn { background: #4a235a; color: #ffffff; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 0.8rem;
+      color: #c4b8c8;
+      font-family: 'Cinzel', serif;
+      letter-spacing: 1px;
+      border-top: 1px solid #f0e8e0;
+      position: relative;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="crown">👑</div>
+    <div class="site-title">INTER-DEPARTMENT COLLABORATION HUB</div>
+    <p class="site-subtitle">
+      Find teammates across departments · Collaborate on projects · Showcase your legacy
+    </p>
+    <div class="divider">
+      <div class="divider-line"></div>
+      <div class="divider-icon">⚜</div>
+      <div class="divider-line"></div>
+    </div>
+  </header>
+
+  <main>
+    <div class="cards">
+
+      <!-- Student Portal -->
+      <a href="/student/" class="card student">
+        <span class="card-icon">🎓</span>
+        <div class="card-title">Student Portal</div>
+        <p class="card-desc">
+          Discover collaboration opportunities, build your skill profile, and contribute to impactful interdepartmental projects.
+        </p>
+        <ul class="card-features">
+          <li>Browse & post collaboration requests</li>
+          <li>Smart skill-match recommendations</li>
+          <li>Real-time team chat</li>
+          <li>Milestone tracking & project wall</li>
+        </ul>
+        <span class="card-btn">Enter Student Portal →</span>
+      </a>
+
+      <!-- Admin Portal -->
+      <a href="/admin/" class="card admin">
+        <span class="card-icon">🛡️</span>
+        <div class="card-title">Admin Portal</div>
+        <p class="card-desc">
+          Oversee all collaboration projects, manage user roles, and broadcast department-wide announcements from a central command.
+        </p>
+        <ul class="card-features">
+          <li>Full project visibility & analytics</li>
+          <li>User role management</li>
+          <li>Post department announcements</li>
+          <li>Monitor team activity</li>
+        </ul>
+        <span class="card-btn">Enter Admin Portal →</span>
+      </a>
+
+    </div>
+  </main>
+
+  <footer>
+    INTER-DEPARTMENT COLLABORATION HUB &nbsp;⚜&nbsp; All Rights Reserved
+  </footer>
+
+</body>
+</html>
