@@ -16,6 +16,7 @@ const messageRoutes = require('./routes/message.routes');
 const wallRoutes = require('./routes/wall.routes');
 const adminRoutes = require('./routes/admin.routes');
 const uploadRoutes = require('./routes/upload.routes');
+const announcementRoutes = require('./routes/announcements.routes');
 
 const app = express();
 const server = http.createServer(app);
@@ -38,6 +39,7 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/wall', wallRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/announcements', announcementRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date() }));

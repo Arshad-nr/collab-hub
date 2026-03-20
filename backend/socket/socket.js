@@ -1,8 +1,18 @@
 const Message = require('../models/Message.model');
 
+let _io = null;
+
 const initSocket = (io) => {
+  _io = io;
+
   io.on('connection', (socket) => {
     console.log(`🔌 Socket connected: ${socket.id}`);
+
+    // All authenticated clients join a global notifications room
+    socket.on('joinNotifications', () => {
+      socket.join('notifications');
+      console.log(`🔔 Socket ${socket.id} joined notifications room`);
+    });
 
     // Client emits 'joinProject' with projectId to enter a chat room
     socket.on('joinProject', (projectId) => {
@@ -16,7 +26,8 @@ const initSocket = (io) => {
         const { projectId, senderId, senderName, senderAvatar, text } = data;
 
         // Save message to MongoDB
-        const message = new Message({
+        const Message_ = require('../models/Message.model');
+        const message = new Message_({
           projectId,
           sender: senderId,
           text,
@@ -49,4 +60,8 @@ const initSocket = (io) => {
   });
 };
 
-module.exports = { initSocket };
+// Call this from any route to broadcast a real-time event
+const getIo = () => _io;
+
+module.exports = { initSocket, getIo };
+

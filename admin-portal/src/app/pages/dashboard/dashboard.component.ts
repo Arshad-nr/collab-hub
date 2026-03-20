@@ -127,7 +127,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
                 <th mat-header-cell *matHeaderCellDef>Members</th>
                 <td mat-cell *matCellDef="let p">
                   <span style="background:#fdfaf5; color:#d4af37; border: 1px solid #eaddcf; padding:4px 12px; border-radius:2px; font-size:12px; font-weight:600;">
-                    {{ p.acceptedMembers?.length || 0 }}
+                    {{ (p.acceptedMembers?.length || 0) + (p.postedBy ? 1 : 0) }}
                   </span>
                 </td>
               </ng-container>

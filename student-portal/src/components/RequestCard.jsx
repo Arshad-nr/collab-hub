@@ -10,6 +10,8 @@ const RequestCard = ({ request, showBookmark = true, onBookmarkToggle }) => {
   const [interested, setInterested] = useState(
     request.interestedUsers?.some((u) => (u._id || u) === user?._id) || false
   );
+  // Hide the button if user is already an accepted team member or is the poster
+  const isTeamMember = request.acceptedMembers?.some((m) => (m._id || m) === user?._id) || false;
   const [bookmarked, setBookmarked] = useState(
     user?.bookmarks?.some((b) => (b._id || b) === request._id) || false
   );
@@ -108,7 +110,7 @@ const RequestCard = ({ request, showBookmark = true, onBookmarkToggle }) => {
 
       {/* Actions */}
       <div className="flex items-center gap-2">
-        {request.postedBy?._id !== user?._id && (
+        {request.postedBy?._id !== user?._id && !isTeamMember && (
           <button
             onClick={handleInterest}
             disabled={interested || loading}

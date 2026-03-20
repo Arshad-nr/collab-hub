@@ -1,8 +1,10 @@
 const express = require('express');
 const User = require('../models/User.model');
 const CollabRequest = require('../models/CollabRequest.model');
+const Announcement = require('../models/Announcement.model');
 const { verifyToken } = require('../middleware/auth.middleware');
 const { requireRole } = require('../middleware/role.middleware');
+const { getIo } = require('../socket/socket');
 
 const router = express.Router();
 
@@ -42,12 +44,33 @@ router.put('/users/:id/role', async (req, res) => {
   }
 });
 
-// POST /api/admin/announcements — log announcement (no model; can be extended)
+// POST /api/admin/announcements — save to DB and broadcast via Socket.io
 router.post('/announcements', async (req, res) => {
   try {
     const { title, message, targetDept } = req.body;
-    console.log('📢 Announcement:', { title, message, targetDept, postedAt: new Date() });
-    res.status(201).json({ message: 'Announcement posted successfully.', announcement: { title, message, targetDept } });
+
+    // Save to MongoDB
+    const announcement = await Announcement.create({
+      title,
+      message,
+      targetDept: targetDept || '',
+      postedBy: req.user._id,
+    });
+
+    // Real-time broadcast to all students in the notifications room
+    const io = getIo();
+    if (io) {
+      io.to('notifications').emit('new-announcement', {
+        _id: announcement._id,
+        title: announcement.title,
+        message: announcement.message,
+        targetDept: announcement.targetDept,
+        createdAt: announcement.createdAt,
+      });
+    }
+
+    console.log(`📢 Announcement broadcast: "${title}" → ${targetDept || 'All'}`);
+    res.status(201).json({ message: 'Announcement posted.', announcement });
   } catch (err) {
     console.error('Admin announcement error:', err);
     res.status(500).json({ message: 'Server error posting announcement.' });
