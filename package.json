@@ -8,7 +8,7 @@
     "build:angular": "cd admin-portal && npx ng build --configuration=production",
     "build:copy": "node build.cjs",
     "build": "npm run build:react && npm run build:angular && npm run build:copy",
-    "install:all": "npm install --prefix backend && npm install --prefix student-portal && npm install --prefix admin-portal",
+    "install:all": "npm install --include=dev --prefix backend && npm install --include=dev --prefix student-portal && npm install --include=dev --legacy-peer-deps --prefix admin-portal",
     "start": "node backend/server.js"
   },
   "devDependencies": {
