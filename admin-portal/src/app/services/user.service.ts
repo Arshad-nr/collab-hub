@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -17,8 +17,7 @@ export interface UserRecord {
 @Injectable({ providedIn: 'root' })
 export class UserService {
   private readonly API = 'http://localhost:5000/api';
-
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
 
   getAllUsers(): Observable<UserRecord[]> {
     return this.http.get<UserRecord[]>(`${this.API}/admin/users`, { withCredentials: true });

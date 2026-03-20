@@ -1,5 +1,4 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -14,7 +13,6 @@ import { AuthService } from '../../services/auth.service';
   selector: 'app-login',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     MatCardModule,
     MatFormFieldModule,
@@ -47,25 +45,33 @@ import { AuthService } from '../../services/auth.service';
             <mat-form-field appearance="outline" class="full-width" style="margin-bottom:8px;">
               <mat-label>Email Address</mat-label>
               <input matInput type="email" formControlName="email" placeholder="admin@college.edu" id="admin-email" />
-              <mat-error *ngIf="loginForm.get('email')?.errors?.['required']">Email is required</mat-error>
-              <mat-error *ngIf="loginForm.get('email')?.errors?.['email']">Enter a valid email</mat-error>
+              @if (loginForm.get('email')?.errors?.['required']) {
+                <mat-error>Email is required</mat-error>
+              }
+              @if (loginForm.get('email')?.errors?.['email']) {
+                <mat-error>Enter a valid email</mat-error>
+              }
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Password</mat-label>
               <input matInput type="password" formControlName="password" placeholder="••••••••" id="admin-password" />
-              <mat-error *ngIf="loginForm.get('password')?.errors?.['required']">Password is required</mat-error>
+              @if (loginForm.get('password')?.errors?.['required']) {
+                <mat-error>Password is required</mat-error>
+              }
             </mat-form-field>
 
             <button
               mat-raised-button
               color="primary"
               type="submit"
-              [disabled]="loginForm.invalid || loading"
+              [disabled]="loginForm.invalid || loading()"
               style="width:100%; margin-top:24px; height:50px; font-size:14px; letter-spacing: 2px; text-transform: uppercase;"
             >
-              <mat-spinner *ngIf="loading" diameter="20" style="display:inline-block; margin-right:8px;"></mat-spinner>
-              {{ loading ? 'Authenticating...' : 'Sign In' }}
+              @if (loading()) {
+                <mat-spinner diameter="20" style="display:inline-block; margin-right:8px;"></mat-spinner>
+              }
+              {{ loading() ? 'Authenticating...' : 'Sign In' }}
             </button>
             
             <div style="text-align: center; margin-top: 24px;">
@@ -78,27 +84,26 @@ import { AuthService } from '../../services/auth.service';
   `,
 })
 export class LoginComponent {
-  loading = false;
+  private fb = inject(FormBuilder);
+  private auth = inject(AuthService);
+  private router = inject(Router);
+  private snack = inject(MatSnackBar);
 
-  loginForm = this.fb.group({
+  loading = signal(false);
+
+  // nonNullable removes the need for ! assertions on form values
+  loginForm = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', Validators.required],
   });
 
-  constructor(
-    private fb: FormBuilder,
-    private auth: AuthService,
-    private router: Router,
-    private snack: MatSnackBar
-  ) {}
-
   async onSubmit() {
     if (this.loginForm.invalid) return;
-    this.loading = true;
+    this.loading.set(true);
     try {
       const user = await this.auth.login(
-        this.loginForm.value.email!,
-        this.loginForm.value.password!
+        this.loginForm.getRawValue().email,
+        this.loginForm.getRawValue().password
       );
       if (user.role !== 'admin') {
         this.snack.open('Access denied: Admin role required.', 'Close', { duration: 4000 });
@@ -106,13 +111,14 @@ export class LoginComponent {
         return;
       }
       this.router.navigate(['/dashboard']);
-    } catch (err: any) {
-      this.snack.open(err?.error?.message || 'Login failed. Check credentials.', 'Close', {
+    } catch (err: unknown) {
+      const message = (err as { error?: { message?: string } })?.error?.message;
+      this.snack.open(message || 'Login failed. Check credentials.', 'Close', {
         duration: 4000,
         panelClass: ['snack-error'],
       });
     } finally {
-      this.loading = false;
+      this.loading.set(false);
     }
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -11,8 +11,7 @@ export interface Announcement {
 @Injectable({ providedIn: 'root' })
 export class AnnouncementService {
   private readonly API = 'http://localhost:5000/api';
-
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
 
   post(data: Announcement): Observable<{ message: string; announcement: Announcement }> {
     return this.http.post<{ message: string; announcement: Announcement }>(

@@ -1,5 +1,4 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -16,7 +15,6 @@ const DEPARTMENTS = ['All Departments', 'CSE', 'ECE', 'MECH', 'CIVIL', 'EEE', 'M
   selector: 'app-announcements',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     MatCardModule,
     MatFormFieldModule,
@@ -52,10 +50,12 @@ const DEPARTMENTS = ['All Departments', 'CSE', 'ECE', 'MECH', 'CIVIL', 'EEE', 'M
             <mat-form-field appearance="outline" class="full-width" style="margin-bottom:8px;">
               <mat-label style="font-family: 'Cinzel', serif; letter-spacing: 1px; font-size: 13px;">Title of Decree</mat-label>
               <input matInput formControlName="title" placeholder="e.g. Annual Design Symposium Registration Open" id="ann-title" style="font-family: 'Lora', serif;"/>
-              <mat-error *ngIf="announcementForm.get('title')?.errors?.['required']">A title is required</mat-error>
-              <mat-error *ngIf="announcementForm.get('title')?.errors?.['minlength']">
-                Title must be at least 5 characters ({{ announcementForm.get('title')?.value?.length || 0 }}/5)
-              </mat-error>
+              @if (announcementForm.get('title')?.errors?.['required']) {
+                <mat-error>A title is required</mat-error>
+              }
+              @if (announcementForm.get('title')?.errors?.['minlength']) {
+                <mat-error>Title must be at least 5 characters ({{ announcementForm.get('title')?.value?.length || 0 }}/5)</mat-error>
+              }
             </mat-form-field>
 
             <!-- Message -->
@@ -63,19 +63,23 @@ const DEPARTMENTS = ['All Departments', 'CSE', 'ECE', 'MECH', 'CIVIL', 'EEE', 'M
               <mat-label style="font-family: 'Cinzel', serif; letter-spacing: 1px; font-size: 13px;">Message Content</mat-label>
               <textarea matInput formControlName="message" rows="5" placeholder="Write your announcement details here in a formal manner..." id="ann-message" style="font-family: 'Lora', serif; line-height: 1.6;"></textarea>
               <mat-hint align="end" style="font-family: 'Lora', serif; font-style: italic;">{{ announcementForm.get('message')?.value?.length || 0 }}/20 min</mat-hint>
-              <mat-error *ngIf="announcementForm.get('message')?.errors?.['required']">Message content is required</mat-error>
-              <mat-error *ngIf="announcementForm.get('message')?.errors?.['minlength']">
-                Message must be at least 20 characters
-              </mat-error>
+              @if (announcementForm.get('message')?.errors?.['required']) {
+                <mat-error>Message content is required</mat-error>
+              }
+              @if (announcementForm.get('message')?.errors?.['minlength']) {
+                <mat-error>Message must be at least 20 characters</mat-error>
+              }
             </mat-form-field>
 
             <!-- Target Department -->
             <mat-form-field appearance="outline" class="full-width" style="margin-bottom:24px;">
               <mat-label style="font-family: 'Cinzel', serif; letter-spacing: 1px; font-size: 13px;">Target Department (Optional)</mat-label>
               <mat-select formControlName="targetDept" id="ann-dept" style="font-family: 'Lora', serif;">
-                <mat-option *ngFor="let dept of departments" [value]="dept === 'All Departments' ? '' : dept" style="font-family: 'Lora', serif;">
-                  {{ dept }}
-                </mat-option>
+                @for (dept of departments; track dept) {
+                  <mat-option [value]="dept === 'All Departments' ? '' : dept" style="font-family: 'Lora', serif;">
+                    {{ dept }}
+                  </mat-option>
+                }
               </mat-select>
             </mat-form-field>
 
@@ -83,75 +87,80 @@ const DEPARTMENTS = ['All Departments', 'CSE', 'ECE', 'MECH', 'CIVIL', 'EEE', 'M
               mat-raised-button
               color="primary"
               type="submit"
-              [disabled]="announcementForm.invalid || loading"
+              [disabled]="announcementForm.invalid || loading()"
               style="height:54px; padding: 0 40px; font-size:14px; letter-spacing: 2px; text-transform: uppercase;"
             >
               <mat-icon style="margin-right:12px; vertical-align:middle; font-size: 20px;">send</mat-icon>
-              {{ loading ? 'Publishing...' : 'Publish Decree' }}
+              {{ loading() ? 'Publishing...' : 'Publish Decree' }}
             </button>
           </form>
         </mat-card-content>
       </mat-card>
 
       <!-- Success history -->
-      <div *ngIf="posted.length > 0" style="margin-top:40px;">
-        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
-          <div style="height: 1px; flex: 1; background: #eaddcf;"></div>
-          <h2 style="font-family: 'Cinzel', serif; font-size:1.1rem; letter-spacing: 2px; font-weight:600; color:#4a235a; margin: 0;">Recently Published</h2>
-          <div style="height: 1px; flex: 1; background: #eaddcf;"></div>
+      @if (posted().length > 0) {
+        <div style="margin-top:40px;">
+          <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
+            <div style="height: 1px; flex: 1; background: #eaddcf;"></div>
+            <h2 style="font-family: 'Cinzel', serif; font-size:1.1rem; letter-spacing: 2px; font-weight:600; color:#4a235a; margin: 0;">Recently Published</h2>
+            <div style="height: 1px; flex: 1; background: #eaddcf;"></div>
+          </div>
+          
+          @for (a of posted(); track a.title) {
+            <mat-card style="margin-bottom:16px; border-left:4px solid #d4af37;">
+              <mat-card-content style="padding: 24px;">
+                <div style="font-family: 'Playfair Display', serif; font-weight:600; font-size:18px; color:#2b1d31;">{{ a.title }}</div>
+                <div style="color:#6a5d6e; font-size:14px; margin-top:8px; line-height: 1.6;">{{ a.message }}</div>
+                @if (a.targetDept) {
+                  <div style="margin-top:12px;">
+                    <span style="background:#fdfaf5; border: 1px solid #eaddcf; color:#cbb493; font-family: 'Cinzel', serif; letter-spacing: 1px; font-size:10px; padding:4px 12px; border-radius:2px;">
+                      {{ a.targetDept }}
+                    </span>
+                  </div>
+                }
+              </mat-card-content>
+            </mat-card>
+          }
         </div>
-        
-        <mat-card *ngFor="let a of posted" style="margin-bottom:16px; border-left:4px solid #d4af37;">
-          <mat-card-content style="padding: 24px;">
-            <div style="font-family: 'Playfair Display', serif; font-weight:600; font-size:18px; color:#2b1d31;">{{ a.title }}</div>
-            <div style="color:#6a5d6e; font-size:14px; margin-top:8px; line-height: 1.6;">{{ a.message }}</div>
-            <div *ngIf="a.targetDept" style="margin-top:12px;">
-              <span style="background:#fdfaf5; border: 1px solid #eaddcf; color:#cbb493; font-family: 'Cinzel', serif; letter-spacing: 1px; font-size:10px; padding:4px 12px; border-radius:2px;">
-                {{ a.targetDept }}
-              </span>
-            </div>
-          </mat-card-content>
-        </mat-card>
-      </div>
+      }
     </div>
   `,
 })
 export class AnnouncementsComponent {
-  departments = DEPARTMENTS;
-  loading = false;
-  posted: any[] = [];
+  private fb = inject(FormBuilder);
+  private announcementService = inject(AnnouncementService);
+  private snack = inject(MatSnackBar);
 
-  announcementForm = this.fb.group({
+  departments = DEPARTMENTS;
+  loading = signal(false);
+  posted = signal<{ title: string; message: string; targetDept?: string }[]>([]);
+
+  // nonNullable removes the need for ! on form values
+  announcementForm = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.minLength(5)]],
     message: ['', [Validators.required, Validators.minLength(20)]],
     targetDept: [''],
   });
 
-  constructor(
-    private fb: FormBuilder,
-    private announcementService: AnnouncementService,
-    private snack: MatSnackBar
-  ) {}
-
   onSubmit(): void {
     if (this.announcementForm.invalid) return;
-    this.loading = true;
+    this.loading.set(true);
 
-    const val = this.announcementForm.value;
+    const val = this.announcementForm.getRawValue();
     this.announcementService.post({
-      title: val.title!,
-      message: val.message!,
+      title: val.title,
+      message: val.message,
       targetDept: val.targetDept || undefined,
     }).subscribe({
       next: (res) => {
-        this.posted.unshift(res.announcement);
+        this.posted.update(prev => [res.announcement, ...prev]);
         this.snack.open('Decree published successfully!', 'Close', { duration: 3000 });
         this.announcementForm.reset();
-        this.loading = false;
+        this.loading.set(false);
       },
       error: (err) => {
         this.snack.open(err?.error?.message || 'Failed to publish.', 'Close', { duration: 3000 });
-        this.loading = false;
+        this.loading.set(false);
       }
     });
   }

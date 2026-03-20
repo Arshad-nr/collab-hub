@@ -1,8 +1,8 @@
 @use '@angular/material' as mat;
 
+// Angular Material v19 — M2 compatibility mode theming
 @include mat.core();
 
-// Create custom palettes for the royal theme
 $royal-purple: (
   50: #f4eef7,
   100: #e3d5ea,
@@ -69,24 +69,19 @@ $royal-gold: (
   )
 );
 
-$admin-primary: mat.define-palette($royal-purple, 900);
-$admin-accent: mat.define-palette($royal-gold, 500, A100, A400);
-$admin-warn: mat.define-palette(mat.$red-palette);
+// v19 renames: mat.define-palette → mat.m2-define-palette etc.
+$admin-primary: mat.m2-define-palette($royal-purple, 900);
+$admin-accent:  mat.m2-define-palette($royal-gold, 500, A100, A400);
+$admin-warn:    mat.m2-define-palette(mat.$m2-red-palette);
 
-$admin-theme: mat.define-light-theme((
+$admin-theme: mat.m2-define-light-theme((
   color: (
     primary: $admin-primary,
-    accent: $admin-accent,
-    warn: $admin-warn,
+    accent:  $admin-accent,
+    warn:    $admin-warn,
   ),
-  typography: mat.define-typography-config(
+  typography: mat.m2-define-typography-config(
     $font-family: '"Lora", serif',
-    $headline-1: mat.define-typography-level(112px, 112px, 300, '"Playfair Display", serif'),
-    $headline-2: mat.define-typography-level(56px, 56px, 400, '"Playfair Display", serif'),
-    $headline-3: mat.define-typography-level(45px, 48px, 400, '"Playfair Display", serif'),
-    $headline-4: mat.define-typography-level(34px, 40px, 400, '"Playfair Display", serif'),
-    $headline-5: mat.define-typography-level(24px, 32px, 400, '"Playfair Display", serif'),
-    $headline-6: mat.define-typography-level(20px, 32px, 500, '"Cinzel", serif'),
   ),
   density: -1,
 ));
@@ -98,7 +93,7 @@ html, body {
   height: 100%;
   margin: 0;
   font-family: 'Lora', serif;
-  background-color: #fdfcf9; /* Very warm, light cream white */
+  background-color: #fdfcf9;
   color: #3e3240;
 }
 
@@ -140,8 +135,8 @@ h1, h2, h3, h4, .royal-heading {
 .stat-card {
   position: relative;
   overflow: hidden;
-  border-top: 3px solid #d4af37 !important; /* Gold accent */
-  
+  border-top: 3px solid #d4af37 !important;
+
   &::before {
     content: '';
     position: absolute;
@@ -150,14 +145,14 @@ h1, h2, h3, h4, .royal-heading {
     border: 1px solid rgba(212, 175, 55, 0.2);
     margin: 4px;
   }
-  
+
   mat-card-content {
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 24px !important;
     text-align: center;
-    
+
     .stat-number {
       font-family: 'Playfair Display', serif;
       font-size: 3.5rem;
@@ -178,7 +173,7 @@ h1, h2, h3, h4, .royal-heading {
 .search-field {
   width: 100%;
   margin-bottom: 24px;
-  
+
   .mdc-text-field--outlined {
     --mdc-outlined-text-field-outline-color: #eaddcf;
     --mdc-outlined-text-field-hover-outline-color: #d4af37;

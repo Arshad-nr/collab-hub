@@ -1,6 +1,5 @@
-import { Component, computed } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatListModule } from '@angular/material/list';
@@ -12,7 +11,6 @@ import { AuthService } from './services/auth.service';
   selector: 'app-root',
   standalone: true,
   imports: [
-    CommonModule,
     RouterOutlet,
     RouterLink,
     RouterLinkActive,
@@ -23,7 +21,7 @@ import { AuthService } from './services/auth.service';
     MatIconModule,
   ],
   template: `
-    <ng-container *ngIf="currentUser(); else noSidebar">
+    @if (currentUser(); as user) {
       <mat-sidenav-container style="height: 100vh; background-color: #fdfcf9;">
         <!-- Sidenav -->
         <mat-sidenav mode="side" opened style="width: 260px; background-color: #ffffff; border-right: 1px solid #eaddcf;">
@@ -57,11 +55,11 @@ import { AuthService } from './services/auth.service';
           <div style="position:absolute; bottom:24px; left:24px; right:24px;">
             <div style="display:flex; align-items:center; gap:12px; padding:16px; border: 1px solid #eaddcf; background:#fffbf7; font-size:13px;">
               <div style="width:36px; height:36px; background:#4a235a; display:flex; align-items:center; justify-content:center; color:#d4af37; font-family:'Cinzel', serif; font-size:16px; flex-shrink:0;">
-                {{ currentUser()?.name?.[0]?.toUpperCase() }}
+                {{ user.name?.[0]?.toUpperCase() }}
               </div>
               <div style="flex:1; min-width:0;">
-                <div style="font-family:'Playfair Display', serif; font-size:14px; color:#2b1d31; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ currentUser()?.name }}</div>
-                <div style="font-family:'Lora', serif; font-style: italic; color:#8c7e8e; font-size:11px;">{{ currentUser()?.role }}</div>
+                <div style="font-family:'Playfair Display', serif; font-size:14px; color:#2b1d31; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ user.name }}</div>
+                <div style="font-family:'Lora', serif; font-style: italic; color:#8c7e8e; font-size:11px;">{{ user.role }}</div>
               </div>
             </div>
           </div>
@@ -82,12 +80,9 @@ import { AuthService } from './services/auth.service';
           <router-outlet></router-outlet>
         </mat-sidenav-content>
       </mat-sidenav-container>
-    </ng-container>
-
-    <!-- No sidebar (login page) -->
-    <ng-template #noSidebar>
+    } @else {
       <router-outlet></router-outlet>
-    </ng-template>
+    }
   `,
   styles: [`
     .nav-item {
@@ -105,9 +100,10 @@ import { AuthService } from './services/auth.service';
   `]
 })
 export class AppComponent {
-  currentUser = this.auth.currentUser;
+  private auth = inject(AuthService);
+  private router = inject(Router);
 
-  constructor(private auth: AuthService, private router: Router) {}
+  currentUser = this.auth.currentUser;
 
   async handleLogout() {
     await this.auth.logout();

@@ -1,10 +1,12 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
+// React 19: createRoot is unchanged but we no longer need `import React`
+// since JSX transform handles it automatically.
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
     <App />
-  </React.StrictMode>,
+  </StrictMode>,
 )

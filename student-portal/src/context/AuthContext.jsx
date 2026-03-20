@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, use } from 'react';
 import axios from 'axios';
 
 const AuthContext = createContext(null);
@@ -27,34 +27,35 @@ export const AuthProvider = ({ children }) => {
     fetchMe();
   }, []);
 
-  const login = async (email, password) => {
+  const login = useCallback(async (email, password) => {
     const { data } = await api.post('/auth/login', { email, password });
     setUser(data.user);
     return data.user;
-  };
+  }, []);
 
-  const register = async (formData) => {
+  const register = useCallback(async (formData) => {
     const { data } = await api.post('/auth/register', formData);
     setUser(data.user);
     return data.user;
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     await api.post('/auth/logout');
     setUser(null);
-  };
+  }, []);
 
-  const updateUser = (data) => {
+  const updateUser = useCallback((data) => {
     setUser((prev) => ({ ...prev, ...data }));
-  };
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser }}>
+    <AuthContext value={{ user, loading, login, register, logout, updateUser }}>
       {children}
-    </AuthContext.Provider>
+    </AuthContext>
   );
 };
 
+// React 19: use() hook can also read context (alternative to useContext)
 export const useAuth = () => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used inside AuthProvider');

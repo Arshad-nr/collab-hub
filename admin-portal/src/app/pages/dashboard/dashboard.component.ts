@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { NgStyle } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -9,12 +9,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ProjectService, Project } from '../../services/project.service';
 import { DateAgoPipe } from '../../pipes/date-ago.pipe';
+import { rxResource } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [
-    CommonModule,
+    NgStyle,
     FormsModule,
     MatCardModule,
     MatTableModule,
@@ -38,7 +39,7 @@ import { DateAgoPipe } from '../../pipes/date-ago.pipe';
       <div class="stats-row">
         <mat-card class="stat-card">
           <mat-card-content>
-            <div class="stat-number" style="color:#d4af37;">{{ allProjects.length }}</div>
+            <div class="stat-number" style="color:#d4af37;">{{ allProjects().length }}</div>
             <div class="stat-label">Total Projects</div>
           </mat-card-content>
         </mat-card>
@@ -62,12 +63,15 @@ import { DateAgoPipe } from '../../pipes/date-ago.pipe';
         </mat-card>
       </div>
 
-      <!-- Loading -->
-      <div *ngIf="loading" style="text-align:center; padding: 64px;">
-        <mat-spinner diameter="40" style="margin:0 auto;"></mat-spinner>
-      </div>
-
-      <ng-container *ngIf="!loading">
+      @if (projects.isLoading()) {
+        <div style="text-align:center; padding: 64px;">
+          <mat-spinner diameter="40" style="margin:0 auto;"></mat-spinner>
+        </div>
+      } @else if (projects.error()) {
+        <div style="text-align:center; padding:64px; color:#8c7e8e; font-style:italic;">
+          Failed to load projects. Please try again.
+        </div>
+      } @else {
         <!-- Search -->
         <mat-form-field appearance="outline" class="search-field">
           <mat-label>Search projects...</mat-label>
@@ -83,7 +87,7 @@ import { DateAgoPipe } from '../../pipes/date-ago.pipe';
         <!-- Table -->
         <mat-card>
           <mat-card-content style="padding:0; overflow:auto;">
-            <table mat-table [dataSource]="filteredProjects" style="width:100%;">
+            <table mat-table [dataSource]="filteredProjects()" style="width:100%;">
 
               <ng-container matColumnDef="title">
                 <th mat-header-cell *matHeaderCellDef>Title</th>
@@ -137,60 +141,57 @@ import { DateAgoPipe } from '../../pipes/date-ago.pipe';
             </table>
 
             <!-- Empty state -->
-            <div *ngIf="filteredProjects.length === 0"
-                 style="text-align:center; padding:60px 40px; color:#8c7e8e;">
-              <div style="font-size:40px; color:#eaddcf; margin-bottom: 16px;">⚜</div>
-              <h3 style="font-family: 'Playfair Display', serif; font-size: 1.5rem; color: #2b1d31; margin-bottom: 8px;">
-                {{ searchTerm ? 'No Matches Found' : 'No Projects Yet' }}
-              </h3>
-              <p style="margin:0; font-size:14px; font-style: italic;">
-                {{ searchTerm ? 'Try adjusting your search terms.' : 'There are no active projects to display.' }}
-              </p>
-            </div>
+            @if (filteredProjects().length === 0) {
+              <div style="text-align:center; padding:60px 40px; color:#8c7e8e;">
+                <div style="font-size:40px; color:#eaddcf; margin-bottom: 16px;">⚜</div>
+                <h3 style="font-family: 'Playfair Display', serif; font-size: 1.5rem; color: #2b1d31; margin-bottom: 8px;">
+                  {{ searchTerm ? 'No Matches Found' : 'No Projects Yet' }}
+                </h3>
+                <p style="margin:0; font-size:14px; font-style: italic;">
+                  {{ searchTerm ? 'Try adjusting your search terms.' : 'There are no active projects to display.' }}
+                </p>
+              </div>
+            }
           </mat-card-content>
         </mat-card>
-      </ng-container>
+      }
     </div>
   `,
 })
-export class DashboardComponent implements OnInit {
-  loading = true;
-  allProjects: Project[] = [];
+export class DashboardComponent {
+  private projectService = inject(ProjectService);
+
+  // rxResource: declarative async data fetching — no OnInit, no subscription
+  projects = rxResource({
+    loader: () => this.projectService.getAllProjects(),
+  });
+
+  allProjects = computed(() => this.projects.value() ?? []);
+
   searchTerm = '';
-  displayedColumns = ['title', 'department', 'status', 'postedBy', 'createdAt', 'members'];
 
-  constructor(private projectService: ProjectService) {}
-
-  ngOnInit(): void {
-    this.projectService.getAllProjects().subscribe({
-      next: (projects) => {
-        this.allProjects = projects;
-        this.loading = false;
-      },
-      error: () => { this.loading = false; }
-    });
-  }
-
-  get filteredProjects(): Project[] {
+  filteredProjects = computed(() => {
     const term = this.searchTerm.toLowerCase().trim();
-    if (!term) return this.allProjects;
-    return this.allProjects.filter(p =>
+    if (!term) return this.allProjects();
+    return this.allProjects().filter(p =>
       p.title.toLowerCase().includes(term) ||
       (p.deptPreferred || '').toLowerCase().includes(term) ||
       p.status.toLowerCase().includes(term) ||
       (p.postedBy?.name || '').toLowerCase().includes(term)
     );
-  }
+  });
+
+  displayedColumns = ['title', 'department', 'status', 'postedBy', 'createdAt', 'members'];
 
   countByStatus(status: string): number {
-    return this.allProjects.filter(p => p.status === status).length;
+    return this.allProjects().filter(p => p.status === status).length;
   }
 
   getStatusStyle(status: string): object {
     const styles: Record<string, object> = {
-      'open':        { background: '#fdfaf5', color: '#d4af37', border: '1px solid #eaddcf' }, // Gold
-      'in-progress': { background: '#fdfcf9', color: '#8c7e8e', border: '1px solid #dcd3de' }, // Gray/Mauve
-      'completed':   { background: '#f9f5fa', color: '#4a235a', border: '1px solid #d1badc' }, // Purple
+      'open':        { background: '#fdfaf5', color: '#d4af37', border: '1px solid #eaddcf' },
+      'in-progress': { background: '#fdfcf9', color: '#8c7e8e', border: '1px solid #dcd3de' },
+      'completed':   { background: '#f9f5fa', color: '#4a235a', border: '1px solid #d1badc' },
     };
     return styles[status] || { background: '#f5f5f5', color: '#757575', border: '1px solid #e0e0e0' };
   }

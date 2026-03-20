@@ -1,4 +1,4 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 
@@ -17,6 +17,7 @@ export interface AdminUser {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly API = 'http://localhost:5000/api';
+  private http = inject(HttpClient);
 
   currentUser = signal<AdminUser | null>(null);
   isAdmin = computed(() => this.currentUser()?.role === 'admin');
@@ -25,7 +26,7 @@ export class AuthService {
   private _ready!: Promise<void>;
   get ready(): Promise<void> { return this._ready; }
 
-  constructor(private http: HttpClient) {
+  constructor() {
     this._ready = this.getMe();
   }
 

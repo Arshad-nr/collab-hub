@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -11,10 +11,10 @@ export interface Project {
   teamSize: number;
   deadline: string;
   postedBy: { _id: string; name: string; email: string; department: string };
-  acceptedMembers: any[];
-  interestedUsers: any[];
+  acceptedMembers: unknown[];
+  interestedUsers: unknown[];
   status: 'open' | 'in-progress' | 'completed';
-  milestones: any[];
+  milestones: unknown[];
   isPublished: boolean;
   createdAt: string;
 }
@@ -22,8 +22,7 @@ export interface Project {
 @Injectable({ providedIn: 'root' })
 export class ProjectService {
   private readonly API = 'http://localhost:5000/api';
-
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
 
   getAllProjects(): Observable<Project[]> {
     return this.http.get<Project[]>(`${this.API}/admin/projects`, { withCredentials: true });
